@@ -34,6 +34,7 @@ public class Gui
         darea.ExposeEvent += onDrawingAreaExposed;
         darea.ButtonPressEvent += onMouseClicked;
         darea.ButtonReleaseEvent += onMouseReleased;
+        darea.MotionNotifyEvent += onMouseMotion;
 
         win.SetDefaultSize(500,500);
 
@@ -50,7 +51,12 @@ public class Gui
     {
         PointD innHnit = new PointD(args.Event.X, args.Event.Y);
         bool flush = ioh.handleMouseClicked(innHnit);
+        if(flush)
+        {
+            win.QueueDraw();
+        } else {
         listenOnMouse = true;
+        }
         System.Console.WriteLine("onMousePressed: X=" +innHnit.X+",Y="+innHnit.Y);
         Console.WriteLine(flush);
     }
@@ -58,16 +64,17 @@ public class Gui
     // Send coordinates to IO handler.
     public void onMouseReleased(object obj, ButtonReleaseEventArgs args)
     {
-        PointD utHnit = new PointD(args.Event.X, args.Event.Y);
-        ioh.handleMouseReleased(utHnit);
-        System.Console.WriteLine("onMouseReleased: X=" + utHnit.X + " ,Y=" + utHnit.Y);
-        darea.QueueDraw();
+        listenOnMouse = false;
     }
 
-    PointD onMouseMotion(object obj, ButtonReleaseEventArgs args)
+    void onMouseMotion(object obj, MotionNotifyEventArgs args)
     {
+        if(listenOnMouse)
+        {
+            ioh.handleMouseMotion(new PointD(args.Event.X, args.Event.Y));
+            darea.QueueDraw();
+        }
     }
-        
 
     // Send keyboard input to IO handler for evaluation.
     public void onKeyboardPressed(object obj, KeyPressEventArgs args)
@@ -123,38 +130,38 @@ public class Gui
         }
     }
 
-        // Draws a line from start to end.
-        public static void DrawLine(Cairo.Context ctx, PointD start, PointD end)
-        {
-            ctx.MoveTo(start);
-            ctx.LineTo(end);
-            ctx.Stroke();
-        }
-
-        // Draws a rectangle from start to end.
-        public static void DrawRectangle(Cairo.Context ctx, PointD start, PointD end)
-        {
-            double width = Math.Abs(start.X - end.X);
-            double height = Math.Abs(start.Y - end.Y);
-            double x = Math.Min(start.X, end.X);
-            double y = Math.Min(start.Y, end.Y);
-            ctx.Rectangle(x, y, width, height);
-            ctx.Stroke();
-        }
-
-        // Draws an ellipse from start to end.
-        public static void DrawEllipse(Cairo.Context ctx, PointD start, PointD end)
-        {
-            double width = Math.Abs(start.X - end.X);
-            double height = Math.Abs(start.Y - end.Y);
-            double xcenter = start.X + (end.X - start.X) / 2.0;
-            double ycenter = start.Y + (end.Y - start.Y) / 2.0;
-
-            ctx.Save();
-            ctx.Translate(xcenter, ycenter);
-            ctx.Scale(width/2.0, height/2.0);
-            ctx.Arc(0.0, 0.0, 1.0, 0.0, 2*Math.PI);
-            ctx.Restore();
-            ctx.Stroke();
-        }
+    // Draws a line from start to end.
+    public static void DrawLine(Cairo.Context ctx, PointD start, PointD end)
+    {
+        ctx.MoveTo(start);
+        ctx.LineTo(end);
+        ctx.Stroke();
     }
+
+    // Draws a rectangle from start to end.
+    public static void DrawRectangle(Cairo.Context ctx, PointD start, PointD end)
+    {
+        double width = Math.Abs(start.X - end.X);
+        double height = Math.Abs(start.Y - end.Y);
+        double x = Math.Min(start.X, end.X);
+        double y = Math.Min(start.Y, end.Y);
+        ctx.Rectangle(x, y, width, height);
+        ctx.Stroke();
+    }
+
+    // Draws an ellipse from start to end.
+    public static void DrawEllipse(Cairo.Context ctx, PointD start, PointD end)
+    {
+        double width = Math.Abs(start.X - end.X);
+        double height = Math.Abs(start.Y - end.Y);
+        double xcenter = start.X + (end.X - start.X) / 2.0;
+        double ycenter = start.Y + (end.Y - start.Y) / 2.0;
+
+        ctx.Save();
+        ctx.Translate(xcenter, ycenter);
+        ctx.Scale(width/2.0, height/2.0);
+        ctx.Arc(0.0, 0.0, 1.0, 0.0, 2*Math.PI);
+        ctx.Restore();
+        ctx.Stroke();
+    }
+}

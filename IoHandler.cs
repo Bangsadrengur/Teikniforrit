@@ -85,7 +85,7 @@ public class IoHandler
 
     // Mouse has been pressed and the screen was not flushed.
     // Update endPoint
-    public void handleMouseReleased(PointD endPoint)
+    public void handleMouseMotion(PointD endPoint)
     {
         if(!flush)
         {
