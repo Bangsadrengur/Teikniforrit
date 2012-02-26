@@ -39,40 +39,6 @@ public class IoHandler
         return mode;
     }
 
-    // Sets mode to a char corresponding to available modes,
-    // L/l for line, R/r for rectangle or E/e for Ellipse.
-    // Keeps last mode if no valid mode was recieved.
-    // Prints out the input on console.
-    // Prints out the mode setting on console.
-    public void updateMode(Gdk.Key keyboardInput)
-    {
-        Console.WriteLine("Keypress: {0}", keyboardInput);
-        switch(keyboardInput)
-        {
-            case Gdk.Key.l:
-                mode = 'l';
-                break;
-            case Gdk.Key.L:
-                mode = 'l';
-                break;
-            case Gdk.Key.r:
-                mode = 'r';
-                break;
-            case Gdk.Key.R:
-                mode = 'r';
-                break;
-            case Gdk.Key.e:
-                mode = 'e';
-                break;
-            case Gdk.Key.E:
-                mode = 'e';
-                break;
-            default:
-                break;
-        }
-        Console.WriteLine("Mode is: {0}", mode);
-    }
-
     // If last mouse click ended in an object drawn to screen,
     // set flush to true and return flush and set drawing points
     // both to zero position causing a ,flush' on the drawing area
