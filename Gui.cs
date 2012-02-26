@@ -2,8 +2,26 @@ using System;
 using Gtk;
 using Cairo;
 
+// Gui is a class that draws a simple drawing board on screen. It is possible
+// to draw a line, a rectangle or an ellipse on the screen, one at a time and
+// never more than one object at once. The size of each object is controlled
+// by drawing between a position where the mouse is clicked to a position where
+// the mouse resides while the mouse button has not yet been released.
+// Switching between drawing lines, rectangles or ellipses is done through
+// keyboard input where L/l changes to drawing lines, R/r changes to drawing
+// rectangles and E/e changes to drawing ellipses. The title of the window
+// reflects the set mode of the program.
 public class Gui
 {
+    // Fastayrðing gagna:
+    // win er gluggi, darea er teikniborð.
+    // painter er breyta til
+    // að halda utan um úthlutun mismunandi falla sem notuð eru
+    // fyrir mismunandi teikniaðferðir.
+    // ioh höndlar flesta úrvinnslu á inntökum.
+    // listenOnMouse kveikir eða slekkur á því hvort skrá eigi
+    // niður hreyfingar músar.
+
     // Teikniborð
     Window win;
     DrawingArea darea;
@@ -13,6 +31,7 @@ public class Gui
     IoHandler ioh;
     bool listenOnMouse;
 
+    // Constructor
     public Gui()
     {
         Application.Init();
@@ -21,14 +40,16 @@ public class Gui
         win = new Window("Drawing lines");
         darea = new  DrawingArea();
         painter = new DrawShape(DrawLine);
-        listenOnMouse = false;
+        listenOnMouse = false; // Við hlustum ekki á mús við núllstöðu.
 
+        // Aukum viðburðasett teikniborðs með ,möskum'.
         darea.AddEvents(
                 (int)Gdk.EventMask.PointerMotionMask
                 | (int)Gdk.EventMask.ButtonPressMask
                 | (int)Gdk.EventMask.ButtonReleaseMask);
 
 
+        // Úthlutum virkni á viðburði.
         win.Hidden += delegate {Application.Quit();};
         win.KeyPressEvent += onKeyboardPressed;
         darea.ExposeEvent += onDrawingAreaExposed;
@@ -36,17 +57,18 @@ public class Gui
         darea.ButtonReleaseEvent += onMouseReleased;
         darea.MotionNotifyEvent += onMouseMotion;
 
+        // Grunnstillum stærð glugga.
         win.SetDefaultSize(500,500);
 
+        // Lokasamantekt til að virkja glugga.
         win.Add(darea);
-
         win.ShowAll();
-
         Application.Run();
     }
 
     // Send coordinates to IO handler and resolve if to flush screen
-    // and ignore the mouse release.
+    // and ignore mouse movements or to start drawing on screen and
+    // watch mouse movements.
     void onMouseClicked(object obj, ButtonPressEventArgs args)
     {
         PointD innHnit = new PointD(args.Event.X, args.Event.Y);
@@ -61,12 +83,14 @@ public class Gui
         Console.WriteLine(flush);
     }
 
-    // Send coordinates to IO handler.
+    // Seize watching for mouse movements.
     public void onMouseReleased(object obj, ButtonReleaseEventArgs args)
     {
         listenOnMouse = false;
     }
 
+    // Updates the endpoint for which an object will be drawn to from
+    // the starting point as long as we're listening for mouse movements.
     void onMouseMotion(object obj, MotionNotifyEventArgs args)
     {
         if(listenOnMouse)
@@ -76,27 +100,26 @@ public class Gui
         }
     }
 
-    // Send keyboard input to IO handler for evaluation.
+    // Forward keyboard input to a function that sets the object to 
+    // draw accordingly.
     public void onKeyboardPressed(object obj, KeyPressEventArgs args)
     {
-        // IO.updateMode
-        //win.Title = args.Event.KeyValue;
-        //ioh.updateMode(args.Event.Key);
         setPainter(args.Event.Key, this);
     }
 
-    // Gets what to draw next on drawing area and draws it.
+    // Draws on screen what the object painter is set to paint.
     void onDrawingAreaExposed(object source, ExposeEventArgs args)
     {
-        // Resolve what to draw next (line, rectangle, ellipse or flush).
         using (Cairo.Context ctx = Gdk.CairoHelper.Create(darea.GdkWindow))
         {
             painter(ctx, ioh.getStartPoint(), ioh.getEndPoint());
         }
     }
 
-    // Sets painter to the desired mode, L/l sets to line drawings,
-    // R/r sets to rectangle drawings and E/e sets to ellipse drawings.
+    // Sets painter to the desired mode according passed variable, 
+    // L/l sets to line drawings, R/r sets to rectangle drawings 
+    // and E/e sets to ellipse drawings.
+    // Changes window title according to the set mode.
     static void setPainter(Gdk.Key keyboardInput, Gui gui)
     {
         switch(keyboardInput)
